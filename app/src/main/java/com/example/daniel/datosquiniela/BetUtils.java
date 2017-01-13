@@ -4,12 +4,15 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -137,5 +140,47 @@ public class BetUtils {
 
 
         return new Result(tmpBet, moneyBet, prize15, prize14, prize13, prize12, prize11, prize10);
+    }
+
+    public static List<Bet> readBetsFile(InputStream stream) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+
+        List<Bet> bets = new ArrayList<>();
+        Bet currentBet = null;
+        String[] matchResults = new String[14];
+        String[] goalNumber = new String[2];
+
+        String line;
+
+        while((line = reader.readLine()) != null){
+            if(line.length()!=16){ //If line is not length, it's not a valid line
+                continue;
+            }
+
+            matchResults =  new String[14];
+            goalNumber = new String[2];
+
+            for(int i = 0; i < line.length(); i++){
+                if(i < 14){
+                    matchResults[i] = String.valueOf(line.charAt(i));
+                }else{
+                    goalNumber[i-14] = String.valueOf(line.charAt(i));
+                }
+            }
+
+            try{
+                currentBet = new Bet(matchResults, goalNumber);
+                bets.add(currentBet);
+            }catch (BetFormatNotValidException e){
+                currentBet = null;
+                matchResults = null;
+                goalNumber = null;
+                continue;
+            }catch (BetParameterLengthNotValidException e){
+                e.printStackTrace();
+            }
+        }
+
+        return bets;
     }
 }

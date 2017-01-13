@@ -40,13 +40,13 @@ public class Bet {
      * @param matchesResults Matches results. Must be of size 14
      * @param goalNumbers Goal Numbers, must be of size 2
      */
-    public Bet( @matchesValues String[] matchesResults, @goalNumberValues String[] goalNumbers) throws Exception {
+    public Bet( @matchesValues String[] matchesResults, @goalNumberValues String[] goalNumbers) throws BetFormatNotValidException, BetParameterLengthNotValidException {
         if(matchesResults.length != 14 || goalNumbers.length != 2){
-            throw new Exception("matchesResult or goalNumbers length number incorrect");
+            throw new BetParameterLengthNotValidException("matchesResult or goalNumbers length number incorrect");
         }
 
         if(!checkGoalNumber(goalNumbers) || !checkMatchesResult(matchesResults)){
-            throw new Exception("Bet format non compliant");
+            throw new BetFormatNotValidException("Bet format non compliant");
         }
 
         this.matchesResults = matchesResults;
@@ -97,5 +97,24 @@ public class Bet {
 
     public void setGoalNumbers(@goalNumberValues String[] goalNumbers) {
         this.goalNumbers = goalNumbers;
+    }
+
+    public int compareResemblance(Bet b){
+        int count = 0;
+
+        for(int i = 0; i < b.getMatchesResults().length; i++){
+            if(getMatchesResults()[i].equals(b.getMatchesResults()[i])){
+                count++;
+            }
+        }
+
+        if(count == 14){
+            if(getGoalNumbers()[0].equals(b.getGoalNumbers()[0])
+                    && getGoalNumbers()[1].equals(b.getGoalNumbers()[1])){
+                count++;
+            }
+        }
+
+        return count;
     }
 }
