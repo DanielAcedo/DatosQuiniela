@@ -1,5 +1,13 @@
 package com.example.daniel.datosquiniela;
 
+import android.util.Xml;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -11,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -55,7 +64,7 @@ public class BetUtils {
         return Double.parseDouble(buffer.toString());
     }
 
-    public static Result XmlToResult(XmlPullParser parser) throws Exception {
+    public static Result XmlToResult(File file) throws Exception {
         Bet tmpBet = null;
 
         String[] matchResults = new String[14];
@@ -76,6 +85,15 @@ public class BetUtils {
 
         int matchCounter = 0;
 
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+        StringBuffer buffer = new StringBuffer();
+        String line;
+        while((line = reader.readLine())!=null){
+            buffer.append(line.replaceAll("^.*<", "<"));
+        }
+
+        XmlPullParser parser = XmlPullParserFactory.newInstance().newPullParser();
+        parser.setInput(new StringReader(buffer.toString()));
         int event = parser.next();
 
         while(event != XmlPullParser.END_DOCUMENT && !stopReading){
@@ -142,6 +160,66 @@ public class BetUtils {
         return new Result(tmpBet, moneyBet, prize15, prize14, prize13, prize12, prize11, prize10);
     }
 
+    public static Result JSONToResult(JSONObject json) throws JSONException, BetParameterLengthNotValidException, BetFormatNotValidException {
+        double moneyBet = 0.0;
+        double prize15 = 0.0;
+        double prize14 = 0.0;
+        double prize13 = 0.0;
+        double prize12 = 0.0;
+        double prize11 = 0.0;
+        double prize10 = 0.0;
+
+        String[] matchResults = new String[14];
+        String[] goalNumber = new String[2];
+
+        JSONArray quinielas = json.getJSONObject("quinielista").getJSONArray("quiniela");
+
+        JSONObject quiniela = null;
+
+        //Find last valid object
+        for (int i = 0; i < quinielas.length(); i++) {
+            JSONObject quinielaTmp = quinielas.getJSONObject(i);
+
+            if(quinielaTmp.getString("_el15").equals("0")
+                    && quinielaTmp.getString("_el14").equals("0")
+                    && quinielaTmp.getString("_el13").equals("0")
+                    && quinielaTmp.getString("_el12").equals("0")
+                    && quinielaTmp.getString("_el11").equals("0")
+                    && quinielaTmp.getString("_el10").equals("0")){
+
+                break;
+            }
+
+            quiniela = quinielaTmp;
+        }
+
+        if(quiniela!=null){
+            moneyBet = XmlMoneyBetValueToDouble(quiniela.getString("_apuesta"));
+            prize15 = XmlValueToDouble(quiniela.getString("_el15"));
+            prize14 = XmlValueToDouble(quiniela.getString("_el14"));
+            prize13 = XmlValueToDouble(quiniela.getString("_el13"));
+            prize12 = XmlValueToDouble(quiniela.getString("_el12"));
+            prize11 = XmlValueToDouble(quiniela.getString("_el11"));
+            prize10 = XmlValueToDouble(quiniela.getString("_el10"));
+
+            JSONArray matches = quiniela.getJSONArray("partit");
+
+            for(int i = 0; i < matches.length(); i++){
+                if(i < 14){
+                    matchResults[i] = matches.getJSONObject(i).getString("_sig");
+                }else{
+                    goalNumber[0] = String.valueOf(matches.getJSONObject(i).getString("_sig").charAt(0));
+                    goalNumber[1] = String.valueOf(matches.getJSONObject(i).getString("_sig").charAt(1));
+                }
+            }
+
+            return new Result(new Bet(matchResults, goalNumber), moneyBet, prize15, prize14, prize13, prize12, prize11, prize10);
+        }
+
+        return null;
+    }
+
+
     public static List<Bet> readBetsFile(InputStream stream) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 
@@ -183,4 +261,33 @@ public class BetUtils {
 
         return bets;
     }
+
+    public static JSONObject winnersToJson(Winners winners) throws JSONException {
+        return new JSONObject(new GsonBuilder().create().toJson(winners));
+    }
+
+    public static String winnersToXml(Winners winners){
+        StringBuilder result = new StringBuilder();
+
+        result.append("<prizes>\n");
+        result.append("\t<prizes10>"+String.valueOf(winners.getPrizes10())+"</prizes10>\n");
+        result.append("\t<prizes11>"+String.valueOf(winners.getPrizes11())+"</prizes11>\n");
+        result.append("\t<prizes12>"+String.valueOf(winners.getPrizes12())+"</prizes12>\n");
+        result.append("\t<prizes13>"+String.valueOf(winners.getPrizes13())+"</prizes13>\n");
+        result.append("\t<prizes14>"+String.valueOf(winners.getPrizes14())+"</prizes14>\n");
+        result.append("\t<prizes15>"+String.valueOf(winners.getPrizes15())+"</prizes15>\n");
+        result.append("\t<winners10>"+String.valueOf(winners.getWinners10())+"</winners10>\n");
+        result.append("\t<winners11>"+String.valueOf(winners.getWinners11())+"</winners11>\n");
+        result.append("\t<winners12>"+String.valueOf(winners.getWinners12())+"</winners12>\n");
+        result.append("\t<winners13>"+String.valueOf(winners.getWinners13())+"</winners13>\n");
+        result.append("\t<winners14>"+String.valueOf(winners.getWinners14())+"</winners14>\n");
+        result.append("\t<winners15>"+String.valueOf(winners.getWinners15())+"</winners15>\n");
+        result.append("\t<total>"+String.valueOf(winners.getTotal())+"</total>\n");
+        result.append("</prizes>");
+
+        return result.toString();
+    }
+
+
+
 }

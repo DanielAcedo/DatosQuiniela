@@ -35,18 +35,6 @@
                 android:text="JSON"
                 android:id="@+id/rb_JSON"/>
         </RadioGroup>
-    
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Resultados:"
-        android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"/>
-    
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/edt_resultFile"/>
 
     <TextView
         android:layout_width="match_parent"
