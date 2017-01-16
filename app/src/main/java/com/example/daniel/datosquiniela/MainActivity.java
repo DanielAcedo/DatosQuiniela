@@ -39,9 +39,9 @@ import cz.msebera.android.httpclient.Header;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String RESULT_FILE_XML = "http://unwavering-determination.hostoi.com/quiniela/resultado.xml";
-    public static final String RESULT_FILE_JSON = "http://unwavering-determination.hostoi.com/quiniela/resultado.json";
-    public static final String UPLOAD_PHP = "http://unwavering-determination.hostoi.com/quiniela/upload.php";
+    public static final String RESULT_FILE_XML = "http://alumno.club/superior/daniel/resultado.xml";
+    public static final String RESULT_FILE_JSON = "http://alumno.club/superior/daniel/resultado.json";
+    public static final String UPLOAD_PHP = "http://alumno.club/superior/daniel/upload.php";
 
     private LinearLayout root;
     private Button btn_calculate;
